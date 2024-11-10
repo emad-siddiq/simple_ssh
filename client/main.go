@@ -11,6 +11,24 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// executeRemoteCommand executes a single command on the remote SSH server and returns the output or an error
+func executeRemoteCommand(client *ssh.Client, command string) (string, error) {
+	// Create a new session for the command
+	session, err := client.NewSession()
+	if err != nil {
+		return "", fmt.Errorf("failed to create session: %w", err)
+	}
+	defer session.Close()
+
+	// Capture combined output from stdout and stderr
+	output, err := session.CombinedOutput(command)
+	if err != nil {
+		return "", fmt.Errorf("command execution error: %w\nOutput: %s", err, output)
+	}
+
+	return string(output), nil
+}
+
 func main() {
 	// Define shell flags
 	keyPath := flag.String("key", "", "Path to the SSH private key file (optional)")
@@ -74,19 +92,13 @@ func main() {
 			continue
 		}
 
-		// Create a new session for each command
-		session, err := client.NewSession()
+		// Execute command using the function
+		output, err := executeRemoteCommand(client, command)
 		if err != nil {
-			log.Fatalf("Failed to create session: %v", err)
+			log.Printf("Error: %v", err)
+			continue
 		}
 
-		// Capture the command output
-		output, err := session.CombinedOutput(command)
-		if err != nil {
-			log.Printf("Command execution error: %v\n", err)
-		}
-
-		fmt.Print(string(output))
-		session.Close()
+		fmt.Print(output) // Print output without extra newline
 	}
 }
