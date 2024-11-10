@@ -1,15 +1,6 @@
 # Go SSH Client/Server Implementation
 
-A simple SSH client and server implementation in Go that allows for remote command execution and interactive shell sessions.
-
-## Features
-
-- Password-based authentication
-- Interactive shell support
-- Command execution
-- PTY (pseudo-terminal) support
-- Configurable port (default: 2222)
-- Support for multiple concurrent connections
+A simple SSH client and server implementation in Go that allows for connecting to remote SSH servers like AWS or the bundled local server, remote command execution and interactive shell sessions.
 
 ## Prerequisites
 
@@ -32,16 +23,12 @@ go-ssh/
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd go-ssh
+git clone https://github.com/emad-siddiq/simple_ssh
+cd simple_ssh
 ```
 
-2. Install dependencies:
-```bash
-go get golang.org/x/crypto/ssh
-```
 
-3. Generate SSH key for the server:
+1. Generate SSH key for the server:
 ```bash
 # From the project root directory
 ssh-keygen -t rsa -f server/id_rsa
@@ -102,8 +89,6 @@ $ echo "Hello, World!"
 $ exit    # to close the session
 ```
 
-## Modifying Default Settings
-
 
 ## Security Considerations
 
@@ -116,11 +101,10 @@ This implementation is for educational purposes and includes several security co
 5. No audit logging
 6. No command sanitization
 
-For production use, you should:
+For production use, one should:
 
 - Implement proper user authentication
 - Use proper host key verification
-- Add command whitelisting/blacklisting
 - Implement proper logging
 - Add timeout mechanisms
 - Add resource limits
