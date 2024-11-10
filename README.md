@@ -76,11 +76,11 @@ go run main.go
 2. In another terminal, start the client:
 ```bash
 # If built:
-./client/ssh-client
+./client/ssh-client -key ~/.ssh/aws.pem -user ubuntu -host <aws-host-url>
 
 # Or run directly:
 cd client
-go run main.go
+go run . -key ~/.ssh/aws.pem -user ubuntu -host <aws-host-url>
 ```
 
 ## Default Configuration
