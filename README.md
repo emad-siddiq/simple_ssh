@@ -1,6 +1,6 @@
 # Go SSH Client/Server Implementation
 
-A simple SSH client and server implementation in Go that allows for connecting to remote SSH servers like AWS or the bundled local server, remote command execution and interactive shell sessions.
+A simple SSH client and server implementation that supports connections to remote SSH servers like AWS or the bundled local server. It offers remote command execution and interactive shell sessions.
 
 ## Prerequisites
 
