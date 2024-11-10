@@ -1,9 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"strings"
@@ -58,78 +58,35 @@ func main() {
 	}
 	defer client.Close()
 
-	// Create a session
-	session, err := client.NewSession()
-	if err != nil {
-		log.Fatalf("Failed to create session: %v", err)
-	}
-	defer session.Close()
+	fmt.Println("Connected to SSH. Enter commands to execute (type 'exit' to quit):")
 
-	// Set up terminal modes
-	modes := ssh.TerminalModes{
-		ssh.ECHO:          0,     // disable echoing
-		ssh.TTY_OP_ISPEED: 14400, // input speed = 14.4kbaud
-		ssh.TTY_OP_OSPEED: 14400, // output speed = 14.4kbaud
-	}
-
-	// Request pseudo terminal
-	if err := session.RequestPty("xterm", 40, 80, modes); err != nil {
-		log.Fatalf("request for pseudo terminal failed: %v", err)
-	}
-
-	// Get stdin, stdout, and stderr pipes from the session
-	stdin, err := session.StdinPipe()
-	if err != nil {
-		log.Fatalf("failed to get stdin pipe: %v", err)
-	}
-	stdout, err := session.StdoutPipe()
-	if err != nil {
-		log.Fatalf("failed to get stdout pipe: %v", err)
-	}
-	stderr, err := session.StderrPipe()
-	if err != nil {
-		log.Fatalf("failed to get stderr pipe: %v", err)
-	}
-
-	// Start the shell session
-	if err := session.Shell(); err != nil {
-		log.Fatalf("failed to start shell: %v", err)
-	}
-
-	// Print message to indicate shell is interactive
-	fmt.Println("Shell started. You can now type commands...")
-
-	// Connect input/output for interactive mode
-	go handleShell(stdin, stdout, stderr)
-
-	// Wait for session to finish (interactive shell will continue)
-	if err := session.Wait(); err != nil {
-		log.Fatalf("failed to wait for session: %v", err)
-	}
-}
-
-// handleShell reads input from the terminal and sends it to the SSH session
-func handleShell(stdin io.WriteCloser, stdout io.Reader, stderr io.Reader) {
-	// Copy user input to stdin of the session
-	go func() {
-		_, err := io.Copy(stdin, os.Stdin)
-		if err != nil {
-			log.Fatalf("failed to copy input to stdin: %v", err)
+	// Create a loop to read and execute commands interactively
+	scanner := bufio.NewScanner(os.Stdin)
+	for {
+		fmt.Print("> ")
+		scanner.Scan()
+		command := scanner.Text()
+		if strings.TrimSpace(command) == "exit" {
+			fmt.Println("Exiting SSH session.")
+			break
 		}
-	}()
-
-	// Copy stdout and stderr to the local terminal
-	go func() {
-		_, err := io.Copy(os.Stdout, stdout)
-		if err != nil {
-			log.Fatalf("failed to copy stdout: %v", err)
+		if command == "" {
+			continue
 		}
-	}()
 
-	go func() {
-		_, err := io.Copy(os.Stderr, stderr)
+		// Create a new session for each command
+		session, err := client.NewSession()
 		if err != nil {
-			log.Fatalf("failed to copy stderr: %v", err)
+			log.Fatalf("Failed to create session: %v", err)
 		}
-	}()
+
+		// Capture the command output
+		output, err := session.CombinedOutput(command)
+		if err != nil {
+			log.Printf("Command execution error: %v\n", err)
+		}
+
+		fmt.Print(string(output))
+		session.Close()
+	}
 }
